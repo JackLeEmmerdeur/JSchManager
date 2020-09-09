@@ -15,7 +15,7 @@ public abstract class SSHChannel implements AutoCloseable {
         None
     }
 
-	protected static final int DEFAULT_TIMEOUT = 500;
+    protected static final int DEFAULT_TIMEOUT = 500;
     Channel c;
     SSHChannelType t;
     InputStream shellin = null;
@@ -83,10 +83,9 @@ public abstract class SSHChannel implements AutoCloseable {
         if (shellerr == null) throw (new Exception(JSchManager.ERR_SHELL_ESTREAM_INVALID));
     }
 
-    protected static int getTimeout(Integer timeoutMS)
-	{
-		return (timeoutMS == null || timeoutMS < DEFAULT_TIMEOUT) ? DEFAULT_TIMEOUT : timeoutMS;
-	}
+    protected static int getTimeout(Integer timeoutMS) {
+        return (timeoutMS == null || timeoutMS < DEFAULT_TIMEOUT) ? DEFAULT_TIMEOUT : timeoutMS;
+    }
 
     public SSHChannelType getChannelType() {
         return t;
@@ -96,10 +95,10 @@ public abstract class SSHChannel implements AutoCloseable {
         return c;
     }
 
-    private  void closeChannel() throws Exception {
+    private void closeChannel() throws Exception {
         if (c != null && !channelClosed) {
             if (t == SSHChannelType.Sftp)
-                ((ChannelSftp)c).exit();
+                ((ChannelSftp) c).exit();
             this.disconnectChannel(null);
             channelClosed = true;
             if (this.debug) System.out.println("channel closed: " + this.t.toString());

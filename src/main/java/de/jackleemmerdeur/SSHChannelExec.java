@@ -2,13 +2,12 @@ package de.jackleemmerdeur;
 
 import com.jcraft.jsch.ChannelExec;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SSHChannelExec extends SSHChannel {
 
-	protected static final int DEFAULT_BUFFER_SIZE = 4096;
+    protected static final int DEFAULT_BUFFER_SIZE = 4096;
 
     protected SSHChannelExec(ChannelExec c, boolean debug) {
         super(SSHChannelType.Exec, c, debug);
@@ -22,11 +21,11 @@ public class SSHChannelExec extends SSHChannel {
 
     @Override
     public void disconnectedEvent(boolean debug, Object userdata) {
-        if (userdata != null && userdata instanceof AtomicInteger && super.c != null) {
+        if (userdata instanceof AtomicInteger && super.c != null) {
             try {
                 AtomicInteger i = (AtomicInteger) userdata;
                 i.set(super.c.getExitStatus());
-            } catch(Exception e) {
+            } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
         }
@@ -42,12 +41,10 @@ public class SSHChannelExec extends SSHChannel {
      * @param breakExitCodesOtherThanThis When the status of the exit-code of
      *                                    the command does not equal breakExitCodesOtherThanThis the
      *                                    output-read-loop will break
-     * @throws IOException
-     * @throws Exception
+     * @throws Exception Throws if StringBuilder or the channel is invalid or already connected
      */
     public void readAllFromChannelExec(StringBuilder builder, AtomicInteger returnCode, Integer breakExitCodesOtherThanThis)
-            throws IOException,
-            Exception {
+            throws Exception {
         readAllFromChannelExec(builder, returnCode, null, null, null, breakExitCodesOtherThanThis);
     }
 
@@ -67,9 +64,7 @@ public class SSHChannelExec extends SSHChannel {
      * @param breakExitCodesOtherThanThis When the status of the exit-code of
      *                                    the command does not equal breakExitCodesOtherThanThis the
      *                                    output-read-loop will break
-     * @throws IOException
-     * @throws Exception
-     * @throws InterruptedException
+     * @throws Exception Throws if StringBuilder or the channel is invalid or already connected
      */
     public void readAllFromChannelExec(
             StringBuilder builder,
@@ -79,7 +74,7 @@ public class SSHChannelExec extends SSHChannel {
             Integer pauseBetweenBufferFill,
             Integer breakExitCodesOtherThanThis
     )
-            throws IOException, InterruptedException, Exception {
+            throws Exception {
         ChannelExec cexec = null;
         try {
             if (builder == null)
@@ -107,8 +102,9 @@ public class SSHChannelExec extends SSHChannel {
             int bufsize = 4096;
             byte[] bytebuf = new byte[bufsize];
             boolean isclosed;
-            int exitstatus, i;
-            int pbbf = ((pauseBetweenBufferFill == null) ? 1000 : pauseBetweenBufferFill);
+            int exitstatus;
+            int i;
+            int pbbf = (pauseBetweenBufferFill == null) ? 20 : pauseBetweenBufferFill;
 
             while (true) {
                 while (in.available() > 0) {
@@ -120,10 +116,11 @@ public class SSHChannelExec extends SSHChannel {
                 isclosed = cexec.isClosed();
                 exitstatus = cexec.getExitStatus();
                 if (isclosed) break;
-                if (breakExitCodesOtherThanThis != null)
-                    if (breakExitCodesOtherThanThis != exitstatus)
-                        break;
-                Thread.sleep(pbbf);
+                if (breakExitCodesOtherThanThis != null &&
+                        breakExitCodesOtherThanThis != exitstatus)
+                    break;
+                if (pbbf > 0)
+                    Thread.sleep(pbbf);
             }
         } finally {
             if (cexec != null)

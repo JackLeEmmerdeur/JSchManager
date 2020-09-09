@@ -24,7 +24,7 @@ public class SSHChannelSftp extends SSHChannel {
     }
 
     public void putFile(String dirname, File f, String newRemoteFilename)
-        throws Exception {
+            throws Exception {
         super.assertChannel();
         JSchManager.assertDirname(dirname);
         JSchManager.assertFilename(newRemoteFilename);
@@ -35,7 +35,7 @@ public class SSHChannelSftp extends SSHChannel {
         csftp.put(new FileInputStream(f), newRemoteFilename, ChannelSftp.OVERWRITE);
     }
 
-    public Boolean fileExistsSFTP(String dirname, String filename)
+    public boolean fileExistsSFTP(String dirname, String filename)
             throws
             Exception {
         super.assertChannel();
@@ -68,7 +68,7 @@ public class SSHChannelSftp extends SSHChannel {
             String dirname,
             String[] filenames
     )
-        throws Exception {
+            throws Exception {
         super.assertChannel();
         JSchManager.assertDirname(dirname);
         JSchManager.assertFilenames(filenames);
@@ -109,17 +109,16 @@ public class SSHChannelSftp extends SSHChannel {
         super.assertChannel();
         JSchManager.assertDirname(dirname);
         JSchManager.assertFilename(filename);
-        InputStreamReader r = null;
 
         int bs = (bufferSize == null) ? SSHChannelExec.DEFAULT_BUFFER_SIZE : bufferSize;
         int paraBreak = (maxMB == null) ? 0 : (maxMB * 1000000) / bs;
 
-        try {
-            r = readFileFromChannelSFTP(dirname, filename, encoding);
+        try (InputStreamReader r = readFileFromChannelSFTP(dirname, filename, encoding)) {
             BufferedReader b = new BufferedReader(r);
             char[] chunk = new char[bs];
             StringBuilder sb = new StringBuilder();
-            int i = 0, n;
+            int i = 0;
+            int n;
 
             while ((n = b.read(chunk)) > -1) {
                 sb.append(chunk, 0, n);
@@ -131,8 +130,6 @@ public class SSHChannelSftp extends SSHChannel {
                 }
             }
             return sb.toString();
-        } finally {
-            if (r != null) r.close();
         }
     }
 }

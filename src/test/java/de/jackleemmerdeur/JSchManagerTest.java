@@ -5,9 +5,10 @@ import org.junit.*;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 @Ignore
-public class SSHWrapperTest {
+public class JSchManagerTest {
     JSchManager w = null;
 
     @BeforeClass
@@ -45,7 +46,6 @@ public class SSHWrapperTest {
         }
     }
 
-    @Ignore
     @Test
     public void testCleanLine() {
         String s = "less testfile\n" +
@@ -60,13 +60,14 @@ public class SSHWrapperTest {
         Assert.assertEquals(so, s);
     }
 
+
     @Test
     public void testExecChannel() {
         try {
             SSHSession s = w.openSession("test", "192.168.178.46", "pi", "raspberry", true, 2000);
             try(SSHChannelExec c = w.openChannelExec(s, "less .nanorc")) {
                 StringBuilder b = new StringBuilder();
-                c.readAllFromChannelExec(b, 0);
+                c.readAllFromChannelExec(b, null, 0);
                 System.out.println(b.toString());
                 String expected = "set constantshow\nset linenumbers\n";
                 Assert.assertEquals(expected, b.toString());
@@ -82,9 +83,9 @@ public class SSHWrapperTest {
             SSHSession s = w.openSession("test", "192.168.178.46", "pi", "raspberry", true, 2000);
             try(SSHChannelSftp c = w.openChannelSFTP(s, true, 1000)) {
                 c.putFile("/home/pi", new File("/home/buccaneersdan/.bashrc"), "test");
-                Assert.assertEquals(true, c.fileExistsSFTP("/home/pi", "test"));
+                Assert.assertTrue(c.fileExistsSFTP("/home/pi", "test"));
                 c.deleteFileSFTP("/home/pi", "test");
-                Assert.assertEquals(false, c.fileExistsSFTP("/home/pi", "test"));
+                Assert.assertFalse(c.fileExistsSFTP("/home/pi", "test"));
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -102,23 +103,21 @@ public class SSHWrapperTest {
             String remotefile = "testfile";
 
             File f = Paths.get(localdir, localfile).toFile();
-            System.out.println(f);
-            if (!f.createNewFile())
+
+            if (!f.exists() && !f.createNewFile())
                 throw(new Exception("Could not create " + localfile));
 
             try (FileOutputStream fo = new FileOutputStream(f)) {
                 fo.write(filecontents.getBytes());
-            } catch (Exception e) {
-                throw(e);
             } finally {
                 SSHSession s = w.openSession("test", "192.168.178.46", "pi", "raspberry", true, 2000);
                 try(SSHChannelSftp c = w.openChannelSFTP(s, true, 1000)) {
                     c.putFile(remotedir, f, remotefile);
-                    Assert.assertEquals(true, c.fileExistsSFTP(remotedir, remotefile));
+                    Assert.assertTrue(c.fileExistsSFTP(remotedir, remotefile));
                     String expFilecontents = c.readFileSFTP(remotedir, remotefile, "utf-8", 1024, 1);
                     Assert.assertEquals(expFilecontents, filecontents);
                     c.deleteFileSFTP(remotedir, remotefile);
-                    Assert.assertEquals(false, c.fileExistsSFTP(remotedir, remotefile));
+                    Assert.assertFalse(c.fileExistsSFTP(remotedir, remotefile));
                 }
             }
         } catch(Exception e) {
@@ -126,7 +125,7 @@ public class SSHWrapperTest {
         } finally {
             File f = new File("/home/buccaneersdan/test");
             if (f.exists())
-                f.delete();
+                Assert.assertTrue(f.delete());
         }
     }
 
@@ -136,13 +135,36 @@ public class SSHWrapperTest {
             SSHSession sess = w.openSession("test", "192.168.178.46", "pi", "raspberry", true, 2000);
             try(SSHChannelShell shell = w.openChannelShell(sess, 1000)) {
                 shell.exec("cd .local");
-                shell.exec("echo 'testus' >> testfile");
-                ArrayList<String> lines = shell.queryArray("less testfile");
+
+                shell.exec("rm testfile");
+
+                shell.exec("echo 'Cowabunga!' >> testfile");
+                shell.exec("echo \"It's Pizza time.\" >> testfile");
+
+                System.out.println("=== Read into ArrayList<String>");
+
+                List<String> lines = shell.queryArray("cat testfile");
                 for(String line: lines) {
                     System.out.println(line);
                 }
-                shell.exec("q");
-                shell.exec("rm testfile");
+
+                System.out.println("=== Read into StringBuilder");
+
+                StringBuilder b = new StringBuilder();
+                shell.queryBuilder("cat testfile", b);
+                System.out.println(b);
+
+                System.out.println("=== Read with Iterator");
+
+                shell.exec("cd share");
+                shell.exec("cd xorg");
+
+                shell.queryBuilder("cat Xorg.0.log", null, false, null, null);
+                shell.resetIterator();
+                while(shell.hasNext()) {
+                    String s = shell.next();
+                    System.out.println(s);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

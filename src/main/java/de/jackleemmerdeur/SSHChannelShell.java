@@ -2,10 +2,10 @@ package de.jackleemmerdeur;
 
 import com.jcraft.jsch.ChannelShell;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 public class SSHChannelShell extends SSHChannel implements Iterator<String> {
     protected static final int DEFAULT_BUFFER_SIZE = 1024;
@@ -17,10 +17,9 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
     private int pauseBetweenReadsMS;
     private int pauseBetweenWritesMS;
     private int pauseAfterConnectMS;
-    private boolean removeANSITerminalSequences = false;
-    private boolean trimLines = false;
-    private String pwd = "";
-    private ArrayList<String> lines = new ArrayList<String>();
+    private boolean removeANSITerminalSequences;
+    private boolean trimLines;
+    private ArrayList<String> lines = new ArrayList<>();
     private StringBuilder linebuffer;
 
     protected SSHChannelShell(
@@ -51,6 +50,7 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
         this.pauseBetweenWritesMS = DEFAULT_PAUSE_BETWEEN_WRITES_MS;
         this.pauseAfterConnectMS = DEFAULT_PAUSE_AFTER_CONNECT_MS;
     }
+
     public void resetStreams() {
         try {
             c.setInputStream(null);
@@ -64,24 +64,32 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
 
     @Override
     public void connectedEvent(boolean debug) {
+
+        boolean err = false;
         try {
-            boolean err = false;
-            try {
-                resetStreams();
-                c.setExtOutputStream(System.err);
-                super.shellerr = c.getExtInputStream();
-                Thread.sleep(this.pauseAfterConnectMS);
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-                err = true;
-            } finally {
-                if (!err)
-                    this.readIn(null, null, null, false);
-            }
+            resetStreams();
+            c.setExtOutputStream(System.err);
+            super.shellerr = c.getExtInputStream();
+            Thread.sleep(this.pauseAfterConnectMS);
         } catch (Exception e) {
-            System.err.println(JSchManager.ERR_SHELL_OPENED);
+            System.err.format(JSchManager.ERR_SHELL_OPENED, e.getMessage());
+            err = true;
+        } finally {
+            if (!err) {
+                try {
+                    this.readIn(null, null, null, false, false);
+                } catch (Exception e) {
+                    System.err.format(JSchManager.ERR_SHELL_OPENED, e.getMessage());
+                    err = true;
+                }
+            }
         }
-        if (debug) System.out.println("connected event: shell");
+        if (debug) {
+            if (!err)
+                System.out.println("Success connected event: shell");
+            else
+                System.out.println("Failed connected event: shell");
+        }
     }
 
     @Override
@@ -103,12 +111,12 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
         this.queryBuilder(command, null, true, null, null);
     }
 
-    public ArrayList<String> queryArray(String command)
+    public List<String> queryArray(String command)
             throws Exception {
         return queryArray(command, true, null, null);
     }
 
-    public ArrayList<String> queryArray(String command, boolean readInput, Integer buffersizeBytes, Integer pauseBetweenReadsMS)
+    public List<String> queryArray(String command, boolean readInput, Integer buffersizeBytes, Integer pauseBetweenReadsMS)
             throws Exception {
 
         super.assertChannel();
@@ -117,16 +125,16 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
         super.shellout.write((command + "\n").getBytes());
         super.shellout.flush();
 
-        ArrayList<String> list = null;
+        List<String> list = null;
 
         if (this.pauseBetweenWritesMS > -1)
             Thread.sleep(this.pauseBetweenWritesMS);
 
         if (readInput) {
             StringBuilder b = new StringBuilder();
-            readIn(b, buffersizeBytes, pauseBetweenReadsMS, false);
+            readIn(b, buffersizeBytes, pauseBetweenReadsMS, false, false);
             if (b.length() > 0)
-                list = readLines(b);
+                list = readLines(b, buffersizeBytes, false);
         }
 
         return list;
@@ -149,10 +157,11 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
             Thread.sleep(this.pauseBetweenWritesMS);
 
         if (readInput)
-            readIn(b, buffersizeBytes, pauseBetweenReadsMS, false);
+            readIn(b, buffersizeBytes, pauseBetweenReadsMS, false, false);
     }
 
-    private int readIn(StringBuilder b, Integer buffersizeBytes, Integer pauseBetweenReadsMS, boolean doPause) throws IOException, Exception {
+    private int readIn(StringBuilder b, Integer buffersizeBytes, Integer pauseBetweenReadsMS, boolean doPause, boolean onlyReadBufferSize)
+            throws Exception {
         int dpauseBetweenReads = (pauseBetweenReadsMS != null && pauseBetweenReadsMS > 100) ? pauseBetweenReadsMS : this.pauseBetweenReadsMS;
         int dbuffersize = (buffersizeBytes != null && buffersizeBytes > 100) ? buffersizeBytes : this.bufferSize;
         byte[] tmp = new byte[dbuffersize];
@@ -166,6 +175,8 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
             if (i < 0) break;
             if (b != null)
                 b.append(new String(tmp, 0, i));
+            if (onlyReadBufferSize && n >= dbuffersize)
+                break;
             available = super.shellin.available() > 0;
         }
         if (doPause)
@@ -182,25 +193,26 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
 
     public void breakIterator() throws Exception {
         resetIterator();
-        readIn(null, 5000, null, false);
+        readIn(null, 5000, null, false, false);
     }
 
     @Override
     public boolean hasNext() {
         if (lines != null && !lines.isEmpty())
             return true;
-        readLines(null);
-        if (lines != null && !lines.isEmpty())
-            return true;
-        return false;
+        readLines(null, 512, true);
+        return (lines != null && !lines.isEmpty());
     }
 
     @Override
-    public String next() {
-        String s = null;
+    public String next()
+            throws NoSuchElementException {
+        String s;
         if (hasNext()) {
             s = lines.get(0);
             lines.remove(0);
+        } else {
+            throw (new NoSuchElementException());
         }
         return s;
     }
@@ -210,8 +222,8 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
         throw new UnsupportedOperationException("SSHChannelShell iterator is read-only");
     }
 
-    private ArrayList<String> readLines(StringBuilder tempBuilder) {
-        StringBuilder usedBuilder = null;
+    private List<String> readLines(StringBuilder tempBuilder, Integer bufferSize, boolean onlyReadBufferSize) {
+        StringBuilder usedBuilder;
         boolean useTempBuilder = false;
 
         if (tempBuilder != null) {
@@ -224,10 +236,10 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
         }
         boolean hasLine = false;
 
-        ArrayList<String> usedArray = null;
+        ArrayList<String> usedArray;
 
         if (useTempBuilder) {
-            usedArray = new ArrayList<String>();
+            usedArray = new ArrayList<>();
         } else {
             usedArray = lines;
         }
@@ -238,13 +250,12 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
 
             if (!hasLine) {
                 try {
-                    int n = readIn(usedBuilder, 400, null, false);
+                    int n = readIn(usedBuilder, (bufferSize != null && bufferSize > 100) ? bufferSize : 1024, null, false, onlyReadBufferSize);
                     if (usedBuilder.length() == 0) {
                         break;
                     } else if (n == 0) {
                         hasLine = true;
                     }
-
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
                     break;
@@ -267,11 +278,6 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
                         usedArray.add(line);
                         usedBuilder.delete(0, lbpos + 1);
                     } else {
-                        line = usedBuilder.toString();
-                        if (removeANSITerminalSequences)
-                            line = cleanConsoleLine(line, trimLines);
-                        usedArray.add(line);
-                        usedBuilder.delete(0, usedBuilder.length());
                         break;
                     }
                 } else {
