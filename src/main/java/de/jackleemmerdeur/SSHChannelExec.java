@@ -34,10 +34,10 @@ public class SSHChannelExec extends SSHChannel {
      * @throws Exception
      * @return The exit-code when the command-execution was finished
      */
-    public int readAllFromChannelExec(StringBuilder strbuilder, Integer breakExitCodesOtherThanThis)
+    public int readAllFromChannelExec(StringBuilder builder, Integer breakExitCodesOtherThanThis)
             throws IOException,
             Exception {
-        return readAllFromChannelExec(strbuilder, null, null, null, breakExitCodesOtherThanThis);
+        return readAllFromChannelExec(builder, null, null, null, breakExitCodesOtherThanThis);
     }
 
     /**
