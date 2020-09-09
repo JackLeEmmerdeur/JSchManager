@@ -83,6 +83,7 @@ public class App {
             try(SSHChannelExec e = w.openChannelExec("test", "cd .local && cd share && cd xorg && cat Xorg.0.log")) {
                 StringBuilder b = new StringBuilder();
                 e.readAllFromChannelExec(b, retcode, 0);
+		System.out.println(b);
             } finally {
                 System.out.println(retcode.get());
             }
