@@ -46,6 +46,7 @@ public class JSchManagerTest {
         }
     }
 
+    @Ignore
     @Test
     public void testCleanLine() {
         String s = "less testfile\n" +
@@ -60,7 +61,7 @@ public class JSchManagerTest {
         Assert.assertEquals(so, s);
     }
 
-
+    @Ignore
     @Test
     public void testExecChannel() {
         try {
@@ -77,6 +78,7 @@ public class JSchManagerTest {
         }
     }
 
+    @Ignore
     @Test
     public void testSftpPut() {
         try {
@@ -92,6 +94,7 @@ public class JSchManagerTest {
         }
     }
 
+    @Ignore
     @Test
     public void testSftpReadFile() {
         try {
@@ -129,6 +132,7 @@ public class JSchManagerTest {
         }
     }
 
+    @Ignore
     @Test
     public void testShell() {
         try {
