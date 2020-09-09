@@ -10,7 +10,7 @@ Is capable of issuing a command sequence, which is done via the shell-channel of
 
 Internally SSHChannelShell reads all available data from the channels inputstream after issuing a command.
 
-The the output of a command can be retrieved as an ArrayList<String> or be appended to a StringBuilder.
+The output of a command can be retrieved as an ArrayList<String> or be appended to a StringBuilder.
 	
 A missing feature is, that the integer return-value of a command can't be retrieved, therefore you have to analyze the string-output and know what to expect.  
 
