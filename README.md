@@ -16,7 +16,9 @@ A missing feature is, that the integer return-value of a command can't be retrie
 
 All shell-output is cleaned of escape-sequences.
 
-See Example further down
+<em>Authentication via public/private key is supported via JSch but not this wrapper. Comming soon (tm)!</em>
+
+See Example further down.
 
 #### SSHChannelExec
 
@@ -49,7 +51,7 @@ Add App.java to that classpath
 Use dependency and optional maven-shade-plugin from pom.xml below.
 
 <em>
-If the connection or single commands seem to run slow you can try to tweak the durations or buffersizes in the (overloaded) methods:
+If the connection or single commands seem to run slow you can try to tweak the parameters for the overloaded methods:
 
 * JSchManager.openSession()
 * JSchManager.openChannelExec()
