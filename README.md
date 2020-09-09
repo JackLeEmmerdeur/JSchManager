@@ -67,19 +67,21 @@ If the connection or single commands seem to run slow you can try to tweak the p
 ```java
 package de.myorg.test;
 
-import de.jackleemmerdeur.NanoBenchmark;
+import de.jackleemmerdeur.*;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class App {
     public static void main(String args[]) {
-        try(JSchManager w = new JSchManager(true)) {
+        try (JSchManager w = new JSchManager(false)) {
             SSHSession s = w.openSession("test", "192.168.178.46", "pi", "raspberry");
 
             // Use a shell to issue consecutive commands
-	    try(SSHChannelShell c = w.openChannelShell(s, 1000)) {
+            try (SSHChannelShell c = w.openChannelShell(s, 1000)) {
                 c.exec("cd .local");
 
-                ArrayList<String> a = c.queryArray("ls -la");
-                for(String l: a) {
+                List<String> a = c.queryArray("ls -la");
+                for (String l : a) {
                     System.out.println(l);
                 }
 
@@ -89,20 +91,20 @@ public class App {
                 c.queryBuilder("cat .bashrc", b);
                 System.out.println(b);
             }
-	    
-	    // Use an exec channel to issue a one-time command (or multiple in one go).
-	    // No interaction with the SSHChannelExec-Instance is allowed after readAllFromChannelExec() is executed.
-	    // The try-with-block ensures resource deallocation and channel-closing.
-	    AtomicInteger retcode = new AtomicInteger();
-            try(SSHChannelExec e = w.openChannelExec("test", "cd .local && cd share && cd xorg && cat Xorg.0.log")) {
+
+            // Use an exec channel to issue a one-time command (or multiple in one go).
+            // No interaction with the SSHChannelExec-Instance is allowed after readAllFromChannelExec() is executed.
+            // The try-with-block ensures resource deallocation and channel-closing.
+            AtomicInteger retcode = new AtomicInteger();
+            try (SSHChannelExec e = w.openChannelExec("test", "cd .local && cd share && cd xorg && cat Xorg.0.log")) {
                 StringBuilder b = new StringBuilder();
                 e.readAllFromChannelExec(b, retcode, 0);
-		System.out.println(b);
+                System.out.println(b);
             } finally {
                 System.out.println(retcode.get());
             }
-	    
-        } catch(Exception e) {
+
+        } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }
