@@ -14,11 +14,15 @@ The the output of a command can be retrieved as an ArrayList<String> or be appen
 	
 A missing feature is, that the integer return-value of a command can't be retrieved, therefore you have to analyze the string-output and know what to expect.  
 
+All shell-output is cleaned of escape-sequences.
+
 See Example further down
 
 #### SSHChannelExec
 
-This class is able to retrieve the integer return-value of a command but cannot issue a command sequence, to o e.g. `cd` multiple times and then list the contents of a file
+This class is able to retrieve the integer return-value of a command but cannot issue a command sequence, to o e.g. `cd` multiple times and then list the contents of a file.
+
+The shell-output is not cleaned of esacpe-sequences.
 
 See Example further down
 
