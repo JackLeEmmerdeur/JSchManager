@@ -51,13 +51,13 @@ Use dependency and optional maven-shade-plugin from pom.xml below.
 <em>
 If the connection or single commands seem to run slow you can try to tweak the durations or buffersizes in the (overloaded) methods:
 
-JSchManager.openSession()
-openChannelExec()
-openChannelSFTP()
-openChannelShell()
-SSHChannelExec.readAllFromChannelExec()
-SSHChannelShell.queryBuilder()
-SSHChannelShell.queryArray()
+* JSchManager.openSession()
+* JSchManager.openChannelExec()
+* JSchManager.openChannelSFTP()
+* JSchManager.openChannelShell()
+* SSHChannelExec.readAllFromChannelExec()
+* SSHChannelShell.queryBuilder()
+* SSHChannelShell.queryArray()
 </em>
 
 ### <ins>Example</ins>
