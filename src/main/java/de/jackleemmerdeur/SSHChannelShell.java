@@ -132,7 +132,7 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
         return list;
     }
 
-    public void queryBuilder(String command, AtomicInteger returnCode, StringBuilder b)
+    public void queryBuilder(String command, StringBuilder b)
             throws Exception {
         queryBuilder(command, b, true, null, null);
     }
