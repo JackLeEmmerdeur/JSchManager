@@ -46,7 +46,19 @@ Create a the classpath de.myorg (replace myorg with your organization) in the sr
 
 Add App.java to that classpath
 
-Use dependency and optional maven-shade-plugin from pom.xml below
+Use dependency and optional maven-shade-plugin from pom.xml below.
+
+<em>
+If the connection or single commands seem to run slow you can try to tweak the durations or buffersizes in the (overloaded) methods:
+
+JSchManager.openSession()
+openChannelExec()
+openChannelSFTP()
+openChannelShell()
+SSHChannelExec.readAllFromChannelExec()
+SSHChannelShell.queryBuilder()
+SSHChannelShell.queryArray()
+</em>
 
 ### <ins>Example</ins>
 
