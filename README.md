@@ -2,7 +2,7 @@
 
 A wrapper library for the SSH library [JSch by JCraft](http://www.jcraft.com/jsch/).
 
-### Features:
+### <ins>Features</ins>
 
 #### SSHChannelShell:
 
@@ -14,11 +14,19 @@ The the output of a command can be retrieved as an ArrayList<String> or be appen
 	
 A missing feature is, that the integer return-value of a command can't be retrieved, therefore you have to analyze the string-output and know what to expect.  
 
-#### SSHChannelExec:
+See Example further down
 
-This class is able to retrieve the integer return-value of a command but cannot issue a command sequence, to o e.g. `cd` multiple times and then list the contents of a file.
+#### SSHChannelExec
 
-### Install library
+This class is able to retrieve the integer return-value of a command but cannot issue a command sequence, to o e.g. `cd` multiple times and then list the contents of a file
+
+See Example further down
+
+#### Other Channel-Types and usages
+
+See [/test/java/de/jackleemmerdeur/JSchManagerTest.java](https://github.com/JackLeEmmerdeur/JSchManager/blob/master/src/test/java/de/jackleemmerdeur/SSHWrapperTest.java)
+
+### <ins>Install library</ins>
 
 git clone https://github.com/JackLeEmmerdeur/JschManager.git
 
@@ -26,7 +34,7 @@ Open the folder with IntelliJ
 
 Open the Maven-tool-window and click install
 
-### Usage
+### <ins>Usage</ins>
 
 Create a new Maven-project.
 
@@ -36,7 +44,7 @@ Add App.java to that classpath
 
 Use dependency and optional maven-shade-plugin from pom.xml below
 
-### Example
+### <ins>Example</ins>
 
 ```java
 package de.myorg.test;
@@ -82,7 +90,7 @@ public class App {
 }
 ```
 
-### pom.xml
+### <ins>pom.xml</ins>
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
