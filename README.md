@@ -10,13 +10,21 @@ import de.jackleemmerdeur.NanoBenchmark;
 public class App {
     public static void main(String args[]) {
         try(JSchManager w = new JSchManager(true)) {
-            SSHSession s = w.openSession("test", "192.168.178.30", "pi", "raspberry");
+            SSHSession s = w.openSession("test", "192.168.178.46", "pi", "raspberry");
+
             try(SSHChannelShell c = w.openChannelShell(s, 1000)) {
                 c.exec("cd .local");
+
                 ArrayList<String> a = c.queryArray("ls -la");
                 for(String l: a) {
                     System.out.println(l);
                 }
+
+                c.exec("cd ..");
+
+                StringBuilder b = new StringBuilder();
+                c.queryBuilder("cat .bashrc", b);
+                System.out.println(b);
             }
         } catch(Exception e) {
             System.err.println(e.getMessage());
