@@ -145,7 +145,7 @@ public class JSchManagerTest {
                 shell.exec("echo 'Cowabunga!' >> testfile");
                 shell.exec("echo \"It's Pizza time.\" >> testfile");
 
-                System.out.println("=== Read into ArrayList<String>");
+                System.out.println("=== Read into List<String>");
 
                 List<String> lines = shell.queryArray("cat testfile");
                 for(String line: lines) {
