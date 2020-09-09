@@ -1,6 +1,54 @@
-# JSchManager
+## JSchManager
 
-## App.java
+A wrapper library for the SSH library [JSch by JCraft](http://www.jcraft.com/jsch/).
+
+### <ins>Features</ins>
+
+#### SSHChannelShell:
+
+Is capable of issuing a command sequence, which is done via the shell-channel of JSch.
+
+Internally SSHChannelShell reads all available data from the channels inputstream after issuing a command.
+
+The the output of a command can be retrieved as an ArrayList<String> or be appended to a StringBuilder.
+	
+A missing feature is, that the integer return-value of a command can't be retrieved, therefore you have to analyze the string-output and know what to expect.  
+
+All shell-output is cleaned of escape-sequences.
+
+See Example further down
+
+#### SSHChannelExec
+
+This class is able to retrieve the integer return-value of a command but cannot issue a command sequence, to o e.g. `cd` multiple times and then list the contents of a file.
+
+The shell-output is not cleaned of esacpe-sequences.
+
+See Example further down
+
+#### Other Channel-Types and usages
+
+See [/test/java/de/jackleemmerdeur/JSchManagerTest.java](https://github.com/JackLeEmmerdeur/JSchManager/blob/master/src/test/java/de/jackleemmerdeur/SSHWrapperTest.java)
+
+### <ins>Install library</ins>
+
+git clone https://github.com/JackLeEmmerdeur/JschManager.git
+
+Open the folder with IntelliJ
+
+Open the Maven-tool-window and click install
+
+### <ins>Usage</ins>
+
+Create a new Maven-project.
+
+Create a the classpath de.myorg (replace myorg with your organization) in the src/main/java folder
+
+Add App.java to that classpath
+
+Use dependency and optional maven-shade-plugin from pom.xml below
+
+### <ins>Example</ins>
 
 ```java
 package de.myorg.test;
@@ -12,7 +60,8 @@ public class App {
         try(JSchManager w = new JSchManager(true)) {
             SSHSession s = w.openSession("test", "192.168.178.46", "pi", "raspberry");
 
-            try(SSHChannelShell c = w.openChannelShell(s, 1000)) {
+            // Use a shell to issue consecutive commands
+	    try(SSHChannelShell c = w.openChannelShell(s, 1000)) {
                 c.exec("cd .local");
 
                 ArrayList<String> a = c.queryArray("ls -la");
@@ -26,6 +75,19 @@ public class App {
                 c.queryBuilder("cat .bashrc", b);
                 System.out.println(b);
             }
+	    
+	    // Use an exec channel to issue a one-time command (or multiple in one go).
+	    // No interaction with the SSHChannelExec-Instance is allowed after readAllFromChannelExec() is executed.
+	    // The try-with-block ensures resource deallocation and channel-closing.
+	    AtomicInteger retcode = new AtomicInteger();
+            try(SSHChannelExec e = w.openChannelExec("test", "cd .local && cd share && cd xorg && cat Xorg.0.log")) {
+                StringBuilder b = new StringBuilder();
+                e.readAllFromChannelExec(b, retcode, 0);
+		System.out.println(b);
+            } finally {
+                System.out.println(retcode.get());
+            }
+	    
         } catch(Exception e) {
             System.err.println(e.getMessage());
         }
@@ -33,7 +95,7 @@ public class App {
 }
 ```
 
-## pom.xml
+### <ins>pom.xml</ins>
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
