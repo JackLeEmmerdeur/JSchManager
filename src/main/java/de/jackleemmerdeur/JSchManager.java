@@ -23,6 +23,7 @@ public class JSchManager
 	protected static final String ERR_CHANNEL_COULD_NOT_DISCONNECT = "Channel could not be disconnected";
 
 	protected static final String ERR_EXEC_BEFORE_CONNECT = "The passed ChannelExec is not allowed to be connected before calling the method";
+	protected static final String ERR_EXEC_INVALID = "No instance of ChannelExec is set to parent";
 
 	protected static final String ERR_SFTP_REMOTEDIR_INVALID = "Remote-Directory invalid";
 	protected static final String ERR_SFTP_REMOTEFILES_INVALID = "Remote-File(session) invalid";

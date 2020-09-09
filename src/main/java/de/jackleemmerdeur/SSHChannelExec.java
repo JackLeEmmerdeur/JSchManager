@@ -4,6 +4,7 @@ import com.jcraft.jsch.ChannelExec;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SSHChannelExec extends SSHChannel {
 
@@ -20,29 +21,42 @@ public class SSHChannelExec extends SSHChannel {
     }
 
     @Override
-    public void disconnectedEvent(boolean debug) {
+    public void disconnectedEvent(boolean debug, Object userdata) {
+        if (userdata != null && userdata instanceof AtomicInteger && super.c != null) {
+            try {
+                AtomicInteger i = (AtomicInteger) userdata;
+                i.set(super.c.getExitStatus());
+            } catch(Exception e) {
+                System.err.println(e.getMessage());
+            }
+        }
         if (debug) System.out.println("disconnected event: exec");
-    }
-
-    /**
-     * @param strbuilder                  The StringBuilder into which the output of the command
-     *                                    running on the the execChannel, will be written
-     * @param breakExitCodesOtherThanThis When the status of the exit-code of
-     *                                    the command does not equal breakExitCodesOtherThanThis the
-     *                                    output-read-loop will break
-     * @throws IOException
-     * @throws Exception
-     * @return The exit-code when the command-execution was finished
-     */
-    public int readAllFromChannelExec(StringBuilder builder, Integer breakExitCodesOtherThanThis)
-            throws IOException,
-            Exception {
-        return readAllFromChannelExec(builder, null, null, null, breakExitCodesOtherThanThis);
     }
 
     /**
      * @param builder                     The StringBuilder into which the output of the command
      *                                    running on the the execChannel, will be written
+     * @param returnCode                  If null the return-code won't be set otherwise
+     *                                    the internal value of the AtomicInteger will be the
+     *                                    final command integer return value
+     * @param breakExitCodesOtherThanThis When the status of the exit-code of
+     *                                    the command does not equal breakExitCodesOtherThanThis the
+     *                                    output-read-loop will break
+     * @throws IOException
+     * @throws Exception
+     */
+    public void readAllFromChannelExec(StringBuilder builder, AtomicInteger returnCode, Integer breakExitCodesOtherThanThis)
+            throws IOException,
+            Exception {
+        readAllFromChannelExec(builder, returnCode, null, null, null, breakExitCodesOtherThanThis);
+    }
+
+    /**
+     * @param builder                     The StringBuilder into which the output of the command
+     *                                    running on the the execChannel, will be written
+     * @param returnCode                  If null the return-code won't be set otherwise
+     *                                    the internal value of the AtomicInteger will be the
+     *                                    final command integer return value
      * @param connectTimeout              The timeout in milliseconds, when trying to connect
      *                                    to the ssh-execution-channel Defaults to 1000 if 0 was passed
      * @param initialSleep                The initial time in milliseconds between connecting
@@ -56,10 +70,10 @@ public class SSHChannelExec extends SSHChannel {
      * @throws IOException
      * @throws Exception
      * @throws InterruptedException
-     * @return The exit-code when the command-execution was finished
      */
-    public int readAllFromChannelExec(
+    public void readAllFromChannelExec(
             StringBuilder builder,
+            AtomicInteger returnCode,
             Integer connectTimeout,
             Integer initialSleep,
             Integer pauseBetweenBufferFill,
@@ -68,14 +82,18 @@ public class SSHChannelExec extends SSHChannel {
             throws IOException, InterruptedException, Exception {
         ChannelExec cexec = null;
         try {
-            if (builder == null) throw (new Exception(JSchManager.ERR_STRINGBUILDER_NOT_INITIALIZED));
+            if (builder == null)
+                throw (new Exception(JSchManager.ERR_STRINGBUILDER_NOT_INITIALIZED));
 
             super.assertChannel();
 
             cexec = (ChannelExec) super.c;
-            if (cexec.isConnected()) throw (new Exception(JSchManager.ERR_EXEC_BEFORE_CONNECT));
+            if (cexec == null)
+                throw (new Exception(JSchManager.ERR_EXEC_INVALID));
 
-            if (cexec == null) return -1;
+            if (cexec.isConnected())
+                throw (new Exception(JSchManager.ERR_EXEC_BEFORE_CONNECT));
+
             cexec.setInputStream(null);
             cexec.setErrStream(System.err);
 
@@ -107,10 +125,9 @@ public class SSHChannelExec extends SSHChannel {
                         break;
                 Thread.sleep(pbbf);
             }
-            return exitstatus;
         } finally {
             if (cexec != null)
-                super.disconnectChannel();
+                super.disconnectChannel(returnCode);
         }
     }
 }

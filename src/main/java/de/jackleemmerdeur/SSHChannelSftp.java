@@ -19,7 +19,7 @@ public class SSHChannelSftp extends SSHChannel {
     }
 
     @Override
-    public void disconnectedEvent(boolean debug) {
+    public void disconnectedEvent(boolean debug, Object userdata) {
         if (debug) System.out.println("disconnected event: sftp");
     }
 

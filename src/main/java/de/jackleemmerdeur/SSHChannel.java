@@ -69,7 +69,7 @@ public abstract class SSHChannel implements AutoCloseable {
 
     abstract void connectedEvent(boolean debug);
 
-    abstract void disconnectedEvent(boolean debug);
+    abstract void disconnectedEvent(boolean debug, Object userdata);
 
     public void assertChannel() throws Exception {
         if (c == null) throw (new Exception(JSchManager.ERR_CHANNEL_IS_NULL));
@@ -100,7 +100,7 @@ public abstract class SSHChannel implements AutoCloseable {
         if (c != null && !channelClosed) {
             if (t == SSHChannelType.Sftp)
                 ((ChannelSftp)c).exit();
-            this.disconnectChannel();
+            this.disconnectChannel(null);
             channelClosed = true;
             if (this.debug) System.out.println("channel closed: " + this.t.toString());
         }
@@ -113,10 +113,10 @@ public abstract class SSHChannel implements AutoCloseable {
         this.connectedEvent(this.debug);
     }
 
-    public void disconnectChannel() throws Exception {
+    public void disconnectChannel(Object userdata) throws Exception {
         if (c == null) throw (new Exception(JSchManager.ERR_CHANNEL_IS_NULL));
         if (c.isConnected()) c.disconnect();
         if (c.isConnected()) throw (new Exception(JSchManager.ERR_CHANNEL_COULD_NOT_DISCONNECT));
-        this.disconnectedEvent(this.debug);
+        this.disconnectedEvent(this.debug, userdata);
     }
 }

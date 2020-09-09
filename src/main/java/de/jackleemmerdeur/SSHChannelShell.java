@@ -85,7 +85,7 @@ public class SSHChannelShell extends SSHChannel implements Iterator<String> {
     }
 
     @Override
-    public void disconnectedEvent(boolean debug) {
+    public void disconnectedEvent(boolean debug, Object userdata) {
         if (debug) System.out.println("disconnected event: shell");
     }
 
