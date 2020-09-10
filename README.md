@@ -30,7 +30,7 @@ See Example further down
 
 #### Other Channel-Types and usages
 
-See [/test/java/de/jackleemmerdeur/JSchManagerTest.java](https://github.com/JackLeEmmerdeur/JSchManager/blob/master/src/test/java/de/jackleemmerdeur/SSHWrapperTest.java)
+See [/test/java/de/jackleemmerdeur/JSchManagerTest.java](https://github.com/JackLeEmmerdeur/JSchManager/blob/master/src/test/java/de/jackleemmerdeur/JSchManagerTest.java)
 
 ### <ins>Install library</ins>
 
