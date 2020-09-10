@@ -1,35 +1,86 @@
 package de.jackleemmerdeur;
 
 import org.junit.*;
+//import org.mockito.AdditionalAnswers;
+//import org.mockito.invocation.InvocationOnMock;
+//import org.mockito.stubbing.Answer;
+//import static org.mockito.ArgumentMatchers.anyString;
+//import static org.mockito.Mockito.*;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 @Ignore
 public class JSchManagerTest {
     JSchManager w = null;
 
-    @BeforeClass
-    public static void setUpClass() {
+// ===============================================================================
+// General rule: unit-tests should not depend on outside services.
+// This is not achievable with the tests below that depend a live ssh-connection.
+// Those test merely function as examples.
+//
+// And now for a completely failed try to mock parts of the classes for unit-tests.
+// If I understood correctly Mockito works best with classes that utilize
+// dependency-injection.
+// For JSchManager it would need to be redesigned so it would receive instances of
+// SSHChannelExec, SSHChannelSftp, SSHSession etc. via dependency injection.
+// All of these injected objects would be mocked and e.g.
+// SSHChannelShell.queryBuilder("ls", ...) would be moved to
+// the main JSchManager instance, which is a real instance that would talk
+// to the injected mocked instances.
+// Is not feasible atm.
+// ===============================================================================
 
-    }
+//    JSchManager mockedManager = null;
+//    SSHChannelExec mockedChannel = null;
+//    StringBuilder mockBuilder = null;
 
-    @AfterClass
-    public static void tearDownClass() {
+//    @Before
+//    public void beforeTest() {
+//        try {
+//            mockedManager = mock(JSchManager.class);
+//            mockBuilder = new StringBuilder();
+//            SSHSession sampleSession = mock(SSHSession.class);
+//            sampleSession.session = mock(Session.class);
+//            sampleSession.id = "test";
+//            List<String> sampleList = new ArrayList<>();
+//            sampleList.add("-rw-r--r--  1 pi   pi      33 Mar 19  2019 .nanorc\n");
+//            sampleList.add("drwxr-xr-x  2 pi   pi    4096 Mar 18  2019 .picodrive\n");
+//            sampleList.add("-rw-r--r--  1 pi   pi     675 Mar 13  2018 .profile\n");
+//            SSHChannelShell sampleShell = mock(SSHChannelShell.class);
+//            sampleShell.c = mock(Channel.class);
+//            sampleShell.debug = false;
+//            sampleShell.t = SSHChannel.SSHChannelType.Shell;
+//            sampleShell.channelClosed = true;
+//            when(mockedManager.openSession("test", "", "", "")).thenReturn(sampleSession);
+//            when(mockedManager.openChannelShell("test", 0)).thenReturn(sampleShell);
+//            when(sampleShell.queryArray("ls")).thenReturn(sampleList);
+//            doAnswer(invokationOnMock -> {
+//                StringBuilder b = (StringBuilder)invokationOnMock.getArguments()[1];
+//                for (String line: sampleList) {
+//                    b.append(line);
+//                }
+//                return b;
+//            }).when(sampleShell).queryBuilder("ls", mockBuilder);
+//            doAnswer(invokationOnMock -> SSHChannel.SSHChannelType.Shell).when(sampleShell).getChannelType();
+//        } catch(Exception e) {
+//            System.err.println(e.getMessage());
+//        }
+//    }
 
-    }
-
-    @Before
-    public void beforeTest() {
-
-    }
-
-    @After
-    public void afterTest() {
-
-    }
+//    @Test
+//    public void testMock() {
+//        try {
+//            SSHSession s = mockedManager.openSession("test", "", "", "");
+//            if (s != null) {
+//                SSHChannelShell e = mockedManager.openChannelShell("test", 0);
+//                System.out.println(e.getChannelType());
+//                e.queryBuilder("ls", mockBuilder);
+//                System.out.println(mockBuilder.toString());
+//            }
+//        }catch (Exception e) { }
+//    }
 
     @Before
     public void setUp() {
